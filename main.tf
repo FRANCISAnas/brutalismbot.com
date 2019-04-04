@@ -26,7 +26,7 @@ data aws_iam_policy_document website {
   statement {
     sid       = "1"
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${local.domain_name}/*"]
+    resources = ["arn:aws:s3:::www.${local.domain_name}/*"]
 
     principals {
       type        = "AWS"
@@ -101,7 +101,31 @@ resource aws_cloudfront_distribution website {
 }
 
 resource aws_cloudfront_origin_access_identity website {
-  comment = "access-identity-${local.domain_name}.s3.amazonaws.com"
+  comment = "access-identity-www.${local.domain_name}.s3.amazonaws.com"
+}
+
+resource aws_route53_record a {
+  name    = "${local.domain_name}"
+  type    = "A"
+  zone_id = "${aws_route53_zone.website.id}"
+
+  alias {
+    evaluate_target_health = false
+    name                   = "${aws_cloudfront_distribution.website.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.website.hosted_zone_id}"
+  }
+}
+
+resource aws_route53_record aaaa {
+  name    = "${local.domain_name}"
+  type    = "AAAA"
+  zone_id = "${aws_route53_zone.website.id}"
+
+  alias {
+    evaluate_target_health = false
+    name                   = "${aws_cloudfront_distribution.website.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.website.hosted_zone_id}"
+  }
 }
 
 resource aws_route53_record cert {
@@ -112,6 +136,30 @@ resource aws_route53_record cert {
   zone_id = "${aws_route53_zone.website.id}"
 }
 
+resource aws_route53_record www_a {
+  name    = "www.${local.domain_name}"
+  type    = "A"
+  zone_id = "${aws_route53_zone.website.id}"
+
+  alias {
+    evaluate_target_health = false
+    name                   = "${aws_cloudfront_distribution.website.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.website.hosted_zone_id}"
+  }
+}
+
+resource aws_route53_record www_aaaa {
+  name    = "www.${local.domain_name}"
+  type    = "AAAA"
+  zone_id = "${aws_route53_zone.website.id}"
+
+  alias {
+    evaluate_target_health = false
+    name                   = "${aws_cloudfront_distribution.website.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.website.hosted_zone_id}"
+  }
+}
+
 resource aws_route53_zone website {
   comment = "HostedZone created by Route53 Registrar"
   name    = "${local.domain_name}"
@@ -119,7 +167,7 @@ resource aws_route53_zone website {
 
 resource aws_s3_bucket website {
   acl           = "private"
-  bucket        = "${local.domain_name}"
+  bucket        = "www.${local.domain_name}"
   force_destroy = false
   policy        = "${data.aws_iam_policy_document.website.json}"
   tags          = "${local.tags}"
