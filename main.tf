@@ -11,18 +11,32 @@ provider aws {
 }
 
 locals {
-  html = ["error", "index", "success"]
+  domain_name = "brutalismbot.com"
+  html        = ["error", "index", "success"]
 
   tags {
     App     = "brutalismbot"
-    Name    = "brutalismbot.com"
+    Name    = "${local.domain_name}"
     Release = "${var.release}"
     Repo    = "${var.repo}"
   }
 }
 
+data aws_iam_policy_document website {
+  statement {
+    sid       = "1"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${local.domain_name}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["${aws_cloudfront_origin_access_identity.website.iam_arn}"]
+    }
+  }
+}
+
 resource aws_acm_certificate cert {
-  domain_name       = "brutalismbot.com"
+  domain_name       = "${local.domain_name}"
   tags              = "${local.tags}"
   validation_method = "DNS"
 
@@ -37,7 +51,7 @@ resource aws_acm_certificate_validation cert {
 }
 
 resource aws_cloudfront_distribution website {
-  aliases             = ["brutalismbot.com", "www.brutalismbot.com"]
+  aliases             = ["${local.domain_name}", "www.${local.domain_name}"]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
@@ -86,6 +100,10 @@ resource aws_cloudfront_distribution website {
   }
 }
 
+resource aws_cloudfront_origin_access_identity website {
+  comment = "access-identity-${local.domain_name}.s3.amazonaws.com"
+}
+
 resource aws_route53_record cert {
   name    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
   records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
@@ -96,32 +114,39 @@ resource aws_route53_record cert {
 
 resource aws_route53_zone website {
   comment = "HostedZone created by Route53 Registrar"
-  name    = "brutalismbot.com"
+  name    = "${local.domain_name}"
 }
 
 resource aws_s3_bucket website {
-  acl           = "public-read"
-  bucket        = "brutalismbot.com"
+  acl           = "private"
+  bucket        = "${local.domain_name}"
   force_destroy = false
+  policy        = "${data.aws_iam_policy_document.website.json}"
+  tags          = "${local.tags}"
+
+  website {
+    error_document = "error.html"
+    index_document = "index.html"
+  }
 }
 
 resource aws_s3_bucket_object html {
   count        = "${length(local.html)}"
-  acl          = "public-read"
+  acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("brutalismbot.com/${element(local.html, count.index)}.html")}"
+  content      = "${file("${local.domain_name}/${element(local.html, count.index)}.html")}"
   content_type = "text/html"
-  etag         = "${filemd5("brutalismbot.com/${element(local.html, count.index)}.html")}"
+  etag         = "${filemd5("${local.domain_name}/${element(local.html, count.index)}.html")}"
   key          = "${element(local.html, count.index)}.html"
   tags         = "${local.tags}"
 }
 
 resource aws_s3_bucket_object png {
-  acl          = "public-read"
+  acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
   content_type = "image/png"
-  etag         = "${filemd5("brutalismbot.com/background.png")}"
+  etag         = "${filemd5("${local.domain_name}/background.png")}"
   key          = "background.png"
-  source       = "brutalismbot.com/background.png"
+  source       = "${local.domain_name}/background.png"
   tags         = "${local.tags}"
 }
