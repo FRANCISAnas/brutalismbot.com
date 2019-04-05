@@ -1,6 +1,6 @@
 release ?= $(shell git describe --tags --always)
 
-.PHONY: init plan apply
+.PHONY: init plan apply clean
 
 .terraform:
 	docker-compose run --rm terraform init
