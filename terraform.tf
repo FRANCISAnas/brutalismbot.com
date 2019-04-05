@@ -6,10 +6,6 @@ terraform {
   }
 }
 
-provider archive {
-  version = "~> 1.2"
-}
-
 provider aws {
   access_key = "${var.aws_access_key_id}"
   profile    = "${var.aws_profile}"
