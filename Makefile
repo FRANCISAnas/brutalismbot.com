@@ -1,4 +1,4 @@
-release ?= $(shell python setup.py --version)
+release ?= $(shell git describe --tags --always)
 
 .PHONY: init plan apply
 
