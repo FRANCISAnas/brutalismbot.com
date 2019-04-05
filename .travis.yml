@@ -5,10 +5,7 @@ services:
 - docker
 install:
 - make init
-jobs:
-  include:
-  - stage: plan
-    script: make plan
-  - stage: deploy
-    script: make apply
-    if: tag IS present
+script:
+- make plan
+after_deploy:
+- make apply

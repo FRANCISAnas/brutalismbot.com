@@ -11,7 +11,7 @@ plan: init
 	docker-compose run --rm -e TF_VAR_release=$(release) terraform plan
 
 apply: init
-	docker-compose run --rm terraform apply -auto-approve
+	docker-compose run --rm -e TF_VAR_release=$(release) terraform apply -auto-approve
 
 clean:
 	rm -rf .terraform
