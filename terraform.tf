@@ -1,3 +1,11 @@
+terraform {
+  backend s3 {
+    bucket = "brutalismbot"
+    key    = "terraform/brutalismbot.com.tf"
+    region = "us-east-1"
+  }
+}
+
 provider archive {
   version = "~> 1.2"
 }
@@ -201,4 +209,33 @@ resource aws_s3_bucket_object png {
   key          = "background.png"
   source       = "${local.domain_name}/background.png"
   tags         = "${local.tags}"
+}
+
+variable aws_access_key_id {
+  description = "AWS Access Key ID."
+  default     = ""
+}
+
+variable aws_secret_access_key {
+  description = "AWS Secret Access Key."
+  default     = ""
+}
+
+variable aws_profile {
+  description = "AWS Profile."
+  default     = ""
+}
+
+variable aws_region {
+  description = "AWS Region."
+  default     = "us-east-1"
+}
+
+variable release {
+  description = "Release tag."
+}
+
+variable repo {
+  description = "Project repository."
+  default     = "https://github.com/brutalismbot/brutalismbot.com"
 }

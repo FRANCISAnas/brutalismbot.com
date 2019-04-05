@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  terraform:
+    environment:
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_DEFAULT_REGION: us-east-1
+    image: hashicorp/terraform
+    volumes:
+      - ./:/var/task
+      - terraform:/var/task/.terraform
+    working_dir: /var/task
+
+volumes:
+  terraform:

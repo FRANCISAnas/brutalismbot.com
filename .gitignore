@@ -9,5 +9,5 @@
 *.tfvars
 
 # secrets
+.eggs/
 .env
-backend.tf
