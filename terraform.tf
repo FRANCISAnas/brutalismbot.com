@@ -186,6 +186,16 @@ resource aws_s3_bucket website {
   }
 }
 
+resource aws_s3_bucket_object css {
+  acl          = "private"
+  bucket       = "${aws_s3_bucket.website.bucket}"
+  content      = "${file("${local.domain_name}/main.css")}"
+  content_type = "text/css"
+  etag         = "${filemd5("${local.domain_name}/main.css")}"
+  key          = "main.css"
+  tags         = "${local.tags}"
+}
+
 resource aws_s3_bucket_object html {
   count        = "${length(local.html)}"
   acl          = "private"
