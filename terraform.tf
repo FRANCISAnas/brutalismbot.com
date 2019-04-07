@@ -245,3 +245,13 @@ variable repo {
   description = "Project repository."
   default     = "https://github.com/brutalismbot/brutalismbot.com"
 }
+
+output bucket_name {
+  description = "S3 website bucket name."
+  value       = "${aws_s3_bucket.website.bucket}"
+}
+
+output cloudfront_distribution_id {
+  description = "CloudFront distribution ID."
+  value       = "${aws_cloudfront_distribution.website.id}"
+}

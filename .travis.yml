@@ -4,6 +4,7 @@ python:
 services:
 - docker
 install:
+- pip install awscli
 - make init
 jobs:
   include:
