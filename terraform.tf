@@ -189,9 +189,9 @@ resource aws_s3_bucket website {
 resource aws_s3_bucket_object css {
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("${local.domain_name}/main.css")}"
+  content      = "${file("www/main.css")}"
   content_type = "text/css"
-  etag         = "${filemd5("${local.domain_name}/main.css")}"
+  etag         = "${filemd5("www/main.css")}"
   key          = "main.css"
   tags         = "${local.tags}"
 }
@@ -200,21 +200,21 @@ resource aws_s3_bucket_object html {
   count        = "${length(local.html)}"
   acl          = "private"
   bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("${local.domain_name}/${element(local.html, count.index)}.html")}"
+  content      = "${file("www/${element(local.html, count.index)}.html")}"
   content_type = "text/html"
-  etag         = "${filemd5("${local.domain_name}/${element(local.html, count.index)}.html")}"
+  etag         = "${filemd5("www/${element(local.html, count.index)}.html")}"
   key          = "${element(local.html, count.index)}.html"
   tags         = "${local.tags}"
 }
 
 resource aws_s3_bucket_object png {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content_type = "image/png"
-  etag         = "${filemd5("${local.domain_name}/background.png")}"
-  key          = "background.png"
-  source       = "${local.domain_name}/background.png"
-  tags         = "${local.tags}"
+  acl            = "private"
+  bucket         = "${aws_s3_bucket.website.bucket}"
+  content_base64 = "${base64encode(file("www/background.png"))}"
+  content_type   = "image/png"
+  etag           = "${filemd5("www/background.png")}"
+  key            = "background.png"
+  tags           = "${local.tags}"
 }
 
 variable aws_access_key_id {
