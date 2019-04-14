@@ -28,7 +28,7 @@
     <link rel="stylesheet" type="text/css" href="/main.css">
   </head>
 
-  <body>
+  <body onload="deepLink()">
     <div class="title">
       <h1>Brutalismbot</h1>
     </div>
@@ -46,5 +46,10 @@
       </div>
     </div>
 
+    <script>
+      function deepLink() {
+        document.getElementById("slack").setAttribute("href", "slack://channel" + window.location.search);
+      }
+    </script>
   </body>
 </html>
