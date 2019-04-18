@@ -1,16 +1,19 @@
 language: python
-python:
-- 3.7-dev
-services:
-- docker
-install:
+before_install:
 - pip install awscli
+install:
 - make init
-jobs:
-  include:
-    - stage: plan
-      script: make plan
-      if: tag IS blank
-    - stage: apply
-      script: make apply invalidate release=${TRAVIS_TAG}
-      if: tag IS present
+script:
+- make plan
+after_deploy:
+- make apply invalidate
+deploy:
+- provider: s3
+  access_key_id: "${AWS_ACCESS_KEY_ID}"
+  secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+  bucket: brutalismbot.com
+  local-dir: www
+  acl: private
+  on:
+    repo: brutalismbot/brutalismbot.com
+    tags: true

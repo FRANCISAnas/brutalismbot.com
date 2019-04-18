@@ -11,7 +11,7 @@ provider aws {
   profile    = "${var.aws_profile}"
   region     = "${var.aws_region}"
   secret_key = "${var.aws_secret_access_key}"
-  version    = "~> 2.4"
+  version    = "~> 2.0"
 }
 
 locals {
@@ -184,37 +184,6 @@ resource aws_s3_bucket website {
     error_document = "error.html"
     index_document = "index.html"
   }
-}
-
-resource aws_s3_bucket_object css {
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("www/main.css")}"
-  content_type = "text/css"
-  etag         = "${filemd5("www/main.css")}"
-  key          = "main.css"
-  tags         = "${local.tags}"
-}
-
-resource aws_s3_bucket_object html {
-  count        = "${length(local.html)}"
-  acl          = "private"
-  bucket       = "${aws_s3_bucket.website.bucket}"
-  content      = "${file("www/${element(local.html, count.index)}.html")}"
-  content_type = "text/html"
-  etag         = "${filemd5("www/${element(local.html, count.index)}.html")}"
-  key          = "${element(local.html, count.index)}.html"
-  tags         = "${local.tags}"
-}
-
-resource aws_s3_bucket_object png {
-  acl            = "private"
-  bucket         = "${aws_s3_bucket.website.bucket}"
-  content_base64 = "${base64encode(file("www/background.png"))}"
-  content_type   = "image/png"
-  etag           = "${filemd5("www/background.png")}"
-  key            = "background.png"
-  tags           = "${local.tags}"
 }
 
 variable aws_access_key_id {
