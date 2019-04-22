@@ -2,6 +2,16 @@ version: '3'
 
 services:
 
+  aws:
+    entrypoint: aws
+    environment:
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_DEFAULT_REGION:
+    image: lambci/lambda:build-python3.7
+    volumes:
+      - ./:/var/task
+
   terraform:
     environment:
       AWS_ACCESS_KEY_ID:
