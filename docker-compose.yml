@@ -2,8 +2,7 @@ version: '3'
 
 services:
 
-  aws:
-    entrypoint: aws
+  base: &base
     environment:
       AWS_ACCESS_KEY_ID:
       AWS_SECRET_ACCESS_KEY:
@@ -11,17 +10,12 @@ services:
     image: lambci/lambda:build-python3.7
     volumes:
       - ./:/var/task
-
-  terraform:
-    environment:
-      AWS_ACCESS_KEY_ID:
-      AWS_SECRET_ACCESS_KEY:
-      AWS_DEFAULT_REGION:
-    image: hashicorp/terraform
-    volumes:
-      - ./:/var/task
-      - terraform:/var/task/.terraform
     working_dir: /var/task
 
-volumes:
+  aws:
+    <<: *base
+    entrypoint: aws
+
   terraform:
+    <<: *base
+    image: hashicorp/terraform
