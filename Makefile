@@ -20,7 +20,9 @@ sync:
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
 
 invalidate:
-	docker-compose run --rm aws cloudfront create-invalidation --distribution-id $(distribution_id) --paths $(paths)
+	docker-compose run --rm aws cloudfront create-invalidation \
+		--distribution-id $(distribution_id) \
+		--paths $(paths)
 
 server:
 	python -m http.server --directory www
