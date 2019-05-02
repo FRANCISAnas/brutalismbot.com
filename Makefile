@@ -5,14 +5,16 @@ release         := $(shell git describe --tags --always)
 
 .PHONY: init plan apply sync invalidate server clean
 
-init:
+.terraform:
 	docker-compose run --rm terraform init
 
+init: .terraform
+
 plan:
-	docker-compose run --rm -e TF_VAR_release=$(release) terraform plan -out .terraform/planfile
+	docker-compose run --rm terraform plan -var release=$(release) -out .terraform/planfile
 
 apply: plan
-	docker-compose run --rm -e TF_VAR_release=$(release) terraform apply -auto-approve .terraform/planfile
+	docker-compose run --rm terraform apply -auto-approve .terraform/planfile
 
 sync:
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
