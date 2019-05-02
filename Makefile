@@ -11,10 +11,10 @@ release         := $(shell git describe --tags --always)
 init: .terraform
 
 plan:
-	docker-compose run --rm terraform plan -var release=$(release) -out .terraform/planfile
+	docker-compose run --rm terraform plan -var release=$(release) -out .terraform/$(release).planfile
 
 apply: plan
-	docker-compose run --rm terraform apply -auto-approve .terraform/planfile
+	docker-compose run --rm terraform apply -auto-approve .terraform/$(release).planfile
 
 sync:
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
