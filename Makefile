@@ -5,19 +5,24 @@ release         := $(shell git describe --tags --always)
 
 .PHONY: init plan apply sync invalidate server clean
 
+default: sync-dryrun plan
+
 .terraform:
 	docker-compose run --rm terraform init
 
 init: .terraform
 
-plan:
+plan: .terraform
 	docker-compose run --rm terraform plan -var release=$(release) -out .terraform/$(release).planfile
 
 apply: plan
 	docker-compose run --rm terraform apply -auto-approve .terraform/$(release).planfile
 
-sync:
+sync: .terraform
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
+
+sync-dryrun: .terraform
+	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/ --dryrun
 
 invalidate:
 	docker-compose run --rm aws cloudfront create-invalidation \
@@ -29,4 +34,3 @@ server:
 
 clean:
 	rm -rf .terraform
-	docker-compose down --volumes
