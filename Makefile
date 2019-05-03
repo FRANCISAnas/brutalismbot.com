@@ -3,7 +3,7 @@ distribution_id  = $(shell docker-compose run --rm terraform output cloudfront_d
 paths            = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_name)/ | awk '{print $$4}' | sed 's/^/\//g' | tr '\n' ' ')
 release         := $(shell git describe --tags --always)
 
-.PHONY: init plan apply sync invalidate server clean
+.PHONY: default init plan apply sync invalidate server clean
 
 default: sync-dryrun plan
 
