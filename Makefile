@@ -12,11 +12,13 @@ default: sync-dryrun plan
 
 init: .terraform
 
-plan: .terraform
-	docker-compose run --rm terraform plan -var release=$(release) -out .terraform/$(release).planfile
+.terraform/$(release).tfplan: .terraform
+	docker-compose run --rm terraform plan -var release=$(release) -out $@
 
-apply: plan
-	docker-compose run --rm terraform apply -auto-approve .terraform/$(release).planfile
+plan: .terraform/$(release).tfplan
+
+apply: .terraform/$(release).tfplan
+	docker-compose run --rm terraform apply -auto-approve $<
 
 sync: .terraform
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
@@ -24,7 +26,7 @@ sync: .terraform
 sync-dryrun: .terraform
 	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/ --dryrun
 
-invalidate:
+invalidate: .terraform
 	docker-compose run --rm aws cloudfront create-invalidation \
 		--distribution-id $(distribution_id) \
 		--paths $(paths)
