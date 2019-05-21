@@ -10,6 +10,7 @@ paths           = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_nam
 .PHONY: build clean
 
 build:
+	terraform fmt
 	docker build \
 	--build-arg AWS_ACCESS_KEY_ID \
 	--build-arg AWS_DEFAULT_REGION \
