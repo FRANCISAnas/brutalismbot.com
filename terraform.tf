@@ -15,12 +15,9 @@ provider aws {
 }
 
 locals {
-  domain_name = "brutalismbot.com"
-  html        = ["error", "index", "success"]
-
-  tags {
+  tags = {
     App     = "brutalismbot"
-    Name    = "${local.domain_name}"
+    Name    = "${var.domain_name}"
     Release = "${var.release}"
     Repo    = "${var.repo}"
   }
@@ -30,7 +27,7 @@ data aws_iam_policy_document website {
   statement {
     sid       = "1"
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::www.${local.domain_name}/*"]
+    resources = ["arn:aws:s3:::www.${var.domain_name}/*"]
 
     principals {
       type        = "AWS"
@@ -40,7 +37,7 @@ data aws_iam_policy_document website {
 }
 
 resource aws_acm_certificate cert {
-  domain_name       = "${local.domain_name}"
+  domain_name       = "${var.domain_name}"
   tags              = "${local.tags}"
   validation_method = "DNS"
 
@@ -55,7 +52,7 @@ resource aws_acm_certificate_validation cert {
 }
 
 resource aws_cloudfront_distribution website {
-  aliases             = ["${local.domain_name}", "www.${local.domain_name}"]
+  aliases             = ["${var.domain_name}", "www.${var.domain_name}"]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
@@ -109,11 +106,11 @@ resource aws_cloudfront_distribution website {
 }
 
 resource aws_cloudfront_origin_access_identity website {
-  comment = "access-identity-www.${local.domain_name}.s3.amazonaws.com"
+  comment = "access-identity-www.${var.domain_name}.s3.amazonaws.com"
 }
 
 resource aws_route53_record a {
-  name    = "${local.domain_name}"
+  name    = "${var.domain_name}"
   type    = "A"
   zone_id = "${aws_route53_zone.website.id}"
 
@@ -125,7 +122,7 @@ resource aws_route53_record a {
 }
 
 resource aws_route53_record aaaa {
-  name    = "${local.domain_name}"
+  name    = "${var.domain_name}"
   type    = "AAAA"
   zone_id = "${aws_route53_zone.website.id}"
 
@@ -145,7 +142,7 @@ resource aws_route53_record cert {
 }
 
 resource aws_route53_record www_a {
-  name    = "www.${local.domain_name}"
+  name    = "www.${var.domain_name}"
   type    = "A"
   zone_id = "${aws_route53_zone.website.id}"
 
@@ -157,7 +154,7 @@ resource aws_route53_record www_a {
 }
 
 resource aws_route53_record www_aaaa {
-  name    = "www.${local.domain_name}"
+  name    = "www.${var.domain_name}"
   type    = "AAAA"
   zone_id = "${aws_route53_zone.website.id}"
 
@@ -170,12 +167,12 @@ resource aws_route53_record www_aaaa {
 
 resource aws_route53_zone website {
   comment = "HostedZone created by Route53 Registrar"
-  name    = "${local.domain_name}"
+  name    = "${var.domain_name}"
 }
 
 resource aws_s3_bucket website {
   acl           = "private"
-  bucket        = "www.${local.domain_name}"
+  bucket        = "www.${var.domain_name}"
   force_destroy = false
   policy        = "${data.aws_iam_policy_document.website.json}"
   tags          = "${local.tags}"
@@ -204,6 +201,11 @@ variable aws_profile {
 variable aws_region {
   description = "AWS Region."
   default     = "us-east-1"
+}
+
+variable domain_name {
+  description = "Website domain name."
+  default     = "brutalismbot.com"
 }
 
 variable release {
