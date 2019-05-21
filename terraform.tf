@@ -14,6 +14,10 @@ provider aws {
   version    = "~> 2.0"
 }
 
+provider null {
+  version = "~> 2.0"
+}
+
 locals {
   tags = {
     App     = "brutalismbot"
@@ -180,6 +184,17 @@ resource aws_s3_bucket website {
   website {
     error_document = "error.html"
     index_document = "index.html"
+  }
+}
+
+resource null_resource invalidation {
+  # Changes to any instance of the cluster requires re-provisioning
+  triggers = {
+    release = "${var.release}"
+  }
+
+  provisioner "local-exec" {
+    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.website.id} --paths '/*'"
   }
 }
 
