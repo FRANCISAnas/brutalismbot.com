@@ -1,38 +1,42 @@
-bucket_name      = $(shell docker-compose run --rm terraform output bucket_name)
-distribution_id  = $(shell docker-compose run --rm terraform output cloudfront_distribution_id)
-paths            = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_name)/ | awk '{print $$4}' | sed 's/^/\//g' | tr '\n' ' ')
-release         := $(shell git describe --tags --always)
+image   := brutalismbot/brutalismbot.com
+images   = $(shell docker image ls --filter reference=$(image) --quiet)
+release := $(shell git describe --tags)
+runtime := ruby2.5
 
-.PHONY: default init plan apply sync sync-dryrun invalidate server clean
+bucket_name     = $(shell docker-compose run --rm terraform output bucket_name)
+distribution_id = $(shell docker-compose run --rm terraform output cloudfront_distribution_id)
+paths           = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_name)/ | awk '{print $$4}' | sed 's/^/\//g' | tr '\n' ' ')
 
-default: sync-dryrun plan
+.PHONY: build clean
 
-.terraform:
-	docker-compose run --rm terraform init
+build:
+	docker build \
+	--build-arg AWS_ACCESS_KEY_ID \
+	--build-arg AWS_DEFAULT_REGION \
+	--build-arg AWS_SECRET_ACCESS_KEY \
+	--build-arg RUNTIME=$(runtime) \
+	--build-arg TF_VAR_release=$(release) \
+	--tag $(image):$@-$(runtime) \
+	--target $@ .
 
-init: .terraform
-
-.terraform/$(release).tfplan: .terraform
-	docker-compose run --rm terraform plan -var release=$(release) -out $@
-
-plan: .terraform/$(release).tfplan
-
-apply: .terraform/$(release).tfplan
-	docker-compose run --rm terraform apply -auto-approve $<
-
-sync: .terraform
-	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/
-
-sync-dryrun: .terraform
-	docker-compose run --rm aws s3 sync www s3://$(bucket_name)/ --dryrun
+apply: build
+	docker run --rm \
+	--env AWS_ACCESS_KEY_ID \
+	--env AWS_DEFAULT_REGION \
+	--env AWS_SECRET_ACCESS_KEY \
+	$(image):build-$(runtime) \
+	terraform apply terraform.tfplan
 
 invalidate: .terraform
-	docker-compose run --rm aws cloudfront create-invalidation \
-		--distribution-id $(distribution_id) \
-		--paths $(paths)
-
-server:
-	python -m http.server --directory www
+	docker run --rm \
+	--env AWS_ACCESS_KEY_ID \
+	--env AWS_DEFAULT_REGION \
+	--env AWS_SECRET_ACCESS_KEY \
+	$(image):build-$(runtime) \
+	aws cloudfront create-invalidation \
+	--distribution-id "$$(terraform output cloudfront_distribution_id)" \
+	--paths "/*"
 
 clean:
-	rm -rf .terraform
+	rm -rf build
+	docker rmi -f $(images)

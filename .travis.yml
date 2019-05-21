@@ -1,12 +1,8 @@
-language: python
-python:
-- '3.6'
-install:
-- make init
+language: ruby
+rvm:
+- 2.5.3
 script:
-- make plan
-after_deploy:
-- make apply invalidate
+- make
 deploy:
 - provider: s3
   access_key_id: "${AWS_ACCESS_KEY_ID}"
@@ -17,3 +13,5 @@ deploy:
   on:
     repo: brutalismbot/brutalismbot.com
     tags: true
+after_deploy:
+- make apply invalidate

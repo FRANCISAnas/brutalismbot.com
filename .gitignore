@@ -8,6 +8,4 @@
 # .tfvars files
 *.tfvars
 
-# secrets
-.eggs/
-.env
+*.env
