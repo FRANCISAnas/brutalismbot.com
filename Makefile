@@ -24,7 +24,7 @@ apply: build
 	--env AWS_ACCESS_KEY_ID \
 	--env AWS_DEFAULT_REGION \
 	--env AWS_SECRET_ACCESS_KEY \
-	$(image):build-$(runtime) \
+	$(image):$<-$(runtime) \
 	terraform apply terraform.tfplan
 
 clean:
