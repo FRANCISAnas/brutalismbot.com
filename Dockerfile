@@ -13,4 +13,5 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_DEFAULT_REGION
 ARG AWS_SECRET_ACCESS_KEY
 ARG TF_VAR_release=latest
+RUN terraform fmt -check
 RUN terraform plan -out terraform.tfplan
