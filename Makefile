@@ -7,7 +7,7 @@ bucket_name     = $(shell docker-compose run --rm terraform output bucket_name)
 distribution_id = $(shell docker-compose run --rm terraform output cloudfront_distribution_id)
 paths           = $(shell docker-compose run --rm -T aws s3 ls s3://$(bucket_name)/ | awk '{print $$4}' | sed 's/^/\//g' | tr '\n' ' ')
 
-.PHONY: build clean
+.PHONY: build apply clean
 
 build:
 	docker build \
@@ -26,16 +26,6 @@ apply: build
 	--env AWS_SECRET_ACCESS_KEY \
 	$(image):build-$(runtime) \
 	terraform apply terraform.tfplan
-
-invalidate: .terraform
-	docker run --rm \
-	--env AWS_ACCESS_KEY_ID \
-	--env AWS_DEFAULT_REGION \
-	--env AWS_SECRET_ACCESS_KEY \
-	$(image):build-$(runtime) \
-	aws cloudfront create-invalidation \
-	--distribution-id "$$(terraform output cloudfront_distribution_id)" \
-	--paths "/*"
 
 clean:
 	rm -rf build

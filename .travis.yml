@@ -14,4 +14,4 @@ deploy:
     repo: brutalismbot/brutalismbot.com
     tags: true
 after_deploy:
-- make apply invalidate
+- make apply
