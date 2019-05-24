@@ -8,4 +8,6 @@
 # .tfvars files
 *.tfvars
 
+**/build/
+**/dist/
 *.env
