@@ -9,7 +9,7 @@ image := brutalismbot/$(name)
 digest = $(shell cat build/$(build).build)
 
 dist/$(name)-$(release).tfplan: | build/$(build).build dist
-	docker run --rm $(digest) cat terraform.tfplan > $@
+	docker run --rm $(digest) cat /var/task/terraform.tfplan > $@
 
 dist:
 	mkdir -p $@
