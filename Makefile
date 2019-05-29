@@ -2,7 +2,7 @@
 runtime := ruby2.5
 name    := brutalismbot.com
 release := $(shell git describe --tags)
-build   := $(release)-$(runtime)
+build   := $(name)-$(release)
 
 # Docker Build
 image := brutalismbot/$(name)
@@ -21,8 +21,8 @@ build/$(build).build: | build
 	--build-arg AWS_SECRET_ACCESS_KEY \
 	--build-arg RUNTIME=$(runtime) \
 	--build-arg TF_VAR_release=$(release) \
-	--tag $(image):$(build) .
-	docker image inspect --format '{{.Id}}' $(image):$(build) > $@
+	--iidfile $@ \
+	--tag $(image):$(release) .
 
 build:
 	mkdir -p $@
@@ -39,5 +39,5 @@ apply: build/$(build).build
 
 
 clean:
-	docker rmi -f $(image) $(shell [ -d build ] && cat build/*)
+	docker rmi -f $(image) $(shell [ -d build ] && grep -h "" build/*)
 	rm -rf build dist
