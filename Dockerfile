@@ -8,7 +8,8 @@ FROM install AS build
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_DEFAULT_REGION=us-east-1
 ARG AWS_SECRET_ACCESS_KEY
+ARG PLANFILE=terraform.tfplan
 ARG TF_VAR_release
 RUN terraform init
 RUN terraform fmt -check
-RUN terraform plan -out terraform.tfplan
+RUN terraform plan -out ${PLANFILE}

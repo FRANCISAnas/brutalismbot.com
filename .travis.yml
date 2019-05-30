@@ -1,17 +1,12 @@
 language: ruby
 rvm:
-- 2.5.3
+- 2.5.5
 script:
 - make
 deploy:
-- provider: s3
-  access_key_id: "${AWS_ACCESS_KEY_ID}"
-  secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
-  bucket: www.brutalismbot.com
-  local-dir: www
-  acl: private
+- provider: script
+  script: make sync apply
+  skip_cleanup: true
   on:
     repo: brutalismbot/brutalismbot.com
     tags: true
-after_deploy:
-- make apply

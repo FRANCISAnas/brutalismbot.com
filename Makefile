@@ -1,43 +1,51 @@
 # Project
-runtime := ruby2.5
-name    := brutalismbot.com
-release := $(shell git describe --tags)
-build   := $(name)-$(release)
+runtime   := ruby2.5
+name      := brutalismbot.com
+release   := $(shell git describe --tags)
+build     := $(name)-$(release)
+buildfile := $(build).build
+planfile  := $(build).tfplan
 
 # Docker Build
 image := brutalismbot/$(name)
-digest = $(shell cat build/$(build).build)
+digest = $(shell cat $(buildfile))
 
-dist/$(name)-$(release).tfplan: | build/$(build).build dist
-	docker run --rm $(digest) cat /var/task/terraform.tfplan > $@
+# S3 Deploy
+s3_bucket := www.brutalismbot.com
+s3_prefix :=
 
-dist:
-	mkdir -p $@
+$(planfile): | $(buildfile)
+	docker run --rm $(digest) cat /var/task/$@ > $@
 
-build/$(build).build: | build
+$(buildfile):
 	docker build \
 	--build-arg AWS_ACCESS_KEY_ID \
 	--build-arg AWS_DEFAULT_REGION \
 	--build-arg AWS_SECRET_ACCESS_KEY \
+	--build-arg PLANFILE=$(planfile) \
 	--build-arg RUNTIME=$(runtime) \
 	--build-arg TF_VAR_release=$(release) \
 	--iidfile $@ \
 	--tag $(image):$(release) .
 
-build:
-	mkdir -p $@
+.PHONY: sync apply clean
 
-.PHONY: clean
-
-apply: build/$(build).build
+sync: $(buildfile)
 	docker run --rm \
 	--env AWS_ACCESS_KEY_ID \
 	--env AWS_DEFAULT_REGION \
 	--env AWS_SECRET_ACCESS_KEY \
 	$(digest) \
-	terraform apply terraform.tfplan
+	aws s3 sync www s3://$(s3_bucket)/$(s3_prefix)
 
+apply: $(buildfile)
+	docker run --rm \
+	--env AWS_ACCESS_KEY_ID \
+	--env AWS_DEFAULT_REGION \
+	--env AWS_SECRET_ACCESS_KEY \
+	$(digest) \
+	terraform apply $(planfile)
 
 clean:
-	docker rmi -f $(image) $(shell [ -d build ] && grep -h "" build/*)
-	rm -rf build dist
+	docker image rm -f $(image) $$(sed G *.build)
+	rm -rf *.build *.tfplan
