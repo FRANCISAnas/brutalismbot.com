@@ -28,15 +28,7 @@ $(buildfile):
 	--iidfile $@ \
 	--tag $(image):$(release) .
 
-.PHONY: sync apply clean
-
-sync: $(buildfile)
-	docker run --rm \
-	--env AWS_ACCESS_KEY_ID \
-	--env AWS_DEFAULT_REGION \
-	--env AWS_SECRET_ACCESS_KEY \
-	$(digest) \
-	aws s3 sync www s3://$(s3_bucket)/$(s3_prefix)
+.PHONY: apply clean
 
 apply: $(buildfile)
 	docker run --rm \

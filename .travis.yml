@@ -5,8 +5,7 @@ script:
 - make
 deploy:
 - provider: script
-  script: make sync apply
-  skip_cleanup: true
+  script: make apply
   on:
     repo: brutalismbot/brutalismbot.com
     tags: true
