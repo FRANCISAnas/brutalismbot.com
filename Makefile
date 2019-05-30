@@ -28,7 +28,10 @@ $(buildfile):
 	--iidfile $@ \
 	--tag $(image):$(release) .
 
-.PHONY: apply clean
+.PHONY: shell apply clean
+
+shell: $(buildfile)
+	docker run --rm -it $(digest) /bin/bash
 
 apply: $(buildfile)
 	docker run --rm \
@@ -39,5 +42,5 @@ apply: $(buildfile)
 	terraform apply $(planfile)
 
 clean:
-	docker image rm -f $(image) $$(sed G *.build)
+	docker image rm -f $(image) $(shell sed G *.build)
 	rm -rf *.build *.tfplan

@@ -12,10 +12,6 @@ terraform {
   }
 }
 
-provider archive {
-  version = "~> 1.2"
-}
-
 provider aws {
   access_key = var.aws_access_key_id
   profile    = var.aws_profile
@@ -35,12 +31,6 @@ locals {
     Release = var.release
     Repo    = var.repo
   }
-}
-
-data archive_file www {
-  source_dir  = "www"
-  output_path = ".terraform/www.zip"
-  type        = "zip"
 }
 
 data aws_iam_policy_document website {
@@ -205,11 +195,11 @@ resource aws_s3_bucket website {
 
 resource null_resource sync {
   triggers = {
-    digest = data.archive_file.www.output_base64sha256
+    digest = file("www.sha256sum")
   }
 
   provisioner "local-exec" {
-    command = "aws s3 sync ${data.archive_file.www.source_dir} s3://${aws_s3_bucket.website.bucket}/"
+    command = "aws s3 sync www s3://${aws_s3_bucket.website.bucket}/"
   }
 }
 
