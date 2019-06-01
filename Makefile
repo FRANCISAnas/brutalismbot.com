@@ -1,5 +1,4 @@
 # Project
-runtime   := ruby2.5
 name      := brutalismbot.com
 release   := $(shell git describe --tags)
 build     := $(name)-$(release)
@@ -27,7 +26,6 @@ $(buildfile):
 	--build-arg AWS_DEFAULT_REGION \
 	--build-arg AWS_SECRET_ACCESS_KEY \
 	--build-arg PLANFILE=$(planfile) \
-	--build-arg RUNTIME=$(runtime) \
 	--build-arg TF_VAR_release=$(release) \
 	--iidfile $@ \
 	--tag $(image):$(release) .
