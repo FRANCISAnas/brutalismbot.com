@@ -18,7 +18,7 @@ s3_prefix :=
 $(planfile): | $(syncfile)
 	docker run --rm $(digest) cat /var/task/$@ > $@
 
-$(syncfile): | $(buildfile)
+$(syncfile): $(buildfile)
 	docker run --rm $(digest) cat /var/task/$@ > $@
 
 $(buildfile):
