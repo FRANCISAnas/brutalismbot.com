@@ -5,6 +5,7 @@ release   := $(shell git describe --tags)
 build     := $(name)-$(release)
 buildfile := $(build).build
 planfile  := $(build).tfplan
+syncfile  := www.sha256sum
 
 # Docker Build
 image := brutalismbot/$(name)
@@ -14,7 +15,10 @@ digest = $(shell cat $(buildfile))
 s3_bucket := www.brutalismbot.com
 s3_prefix :=
 
-$(planfile): | $(buildfile)
+$(planfile): | $(syncfile)
+	docker run --rm $(digest) cat /var/task/$@ > $@
+
+$(syncfile): | $(buildfile)
 	docker run --rm $(digest) cat /var/task/$@ > $@
 
 $(buildfile):

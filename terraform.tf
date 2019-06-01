@@ -134,7 +134,7 @@ resource aws_route53_record a {
 resource aws_route53_record aaaa {
   name    = var.domain_name
   type    = "AAAA"
-  zone_id = "${aws_route53_zone.website.id}"
+  zone_id = aws_route53_zone.website.id
 
   alias {
     evaluate_target_health = false
@@ -195,11 +195,11 @@ resource aws_s3_bucket website {
 
 resource null_resource sync {
   triggers = {
-    digest = file("www.sha256sum")
+    digest = file("${path.module}/www.sha256sum")
   }
 
   provisioner "local-exec" {
-    command = "aws s3 sync www s3://${aws_s3_bucket.website.bucket}/"
+    command = "aws s3 sync ${path.module}/www s3://${aws_s3_bucket.website.bucket}/"
   }
 }
 

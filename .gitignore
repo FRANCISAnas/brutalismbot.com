@@ -10,5 +10,4 @@
 
 *.build
 *.env
-*.sha256sum
 *.tfplan
