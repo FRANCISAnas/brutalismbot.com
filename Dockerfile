@@ -1,15 +1,14 @@
-ARG RUNTIME=ruby2.5
+FROM lambci/lambda:build-ruby2.5
 
-FROM lambci/lambda:build-${RUNTIME} AS install
 COPY --from=hashicorp/terraform:0.12.0 /bin/terraform /bin/
 COPY . .
 
-FROM install AS build
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_DEFAULT_REGION=us-east-1
 ARG AWS_SECRET_ACCESS_KEY
 ARG PLANFILE=terraform.tfplan
 ARG TF_VAR_release
+
 RUN sha256sum www/* | sha256sum > www.sha256sum
 RUN terraform init
 RUN terraform fmt -check
