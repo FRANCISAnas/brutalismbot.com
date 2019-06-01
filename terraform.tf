@@ -13,11 +13,8 @@ terraform {
 }
 
 provider aws {
-  access_key = var.aws_access_key_id
-  profile    = var.aws_profile
-  region     = var.aws_region
-  secret_key = var.aws_secret_access_key
-  version    = "~> 2.7"
+  region  = "us-east-1"
+  version = "~> 2.7"
 }
 
 provider null {
@@ -211,26 +208,6 @@ resource null_resource invalidation {
   provisioner "local-exec" {
     command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.website.id} --paths '/*'"
   }
-}
-
-variable aws_access_key_id {
-  description = "AWS Access Key ID."
-  default     = ""
-}
-
-variable aws_secret_access_key {
-  description = "AWS Secret Access Key."
-  default     = ""
-}
-
-variable aws_profile {
-  description = "AWS Profile."
-  default     = ""
-}
-
-variable aws_region {
-  description = "AWS Region."
-  default     = "us-east-1"
 }
 
 variable domain_name {
