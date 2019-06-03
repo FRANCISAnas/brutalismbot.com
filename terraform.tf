@@ -1,7 +1,7 @@
 terraform {
   backend s3 {
     bucket = "brutalismbot"
-    key    = "terraform/brutalismbot.com.tf"
+    key    = "terraform/brutalismbot.com.tfstate"
     region = "us-east-1"
   }
 
