@@ -1,6 +1,6 @@
 FROM lambci/lambda:build-ruby2.5
 
-COPY --from=hashicorp/terraform:0.12.0 /bin/terraform /bin/
+COPY --from=hashicorp/terraform:0.12.1 /bin/terraform /bin/
 COPY . .
 
 ARG AWS_ACCESS_KEY_ID
