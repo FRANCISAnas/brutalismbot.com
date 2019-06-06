@@ -8,6 +8,7 @@
 # .tfvars files
 *.tfvars
 
+**/.terraform/
 **/.docker/
 *.env
 *.sha256sum

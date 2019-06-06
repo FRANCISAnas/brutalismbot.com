@@ -32,7 +32,7 @@ locals {
 
 data aws_iam_policy_document website {
   statement {
-    sid       = "1"
+    sid       = "AllowCloudFront"
     actions   = ["s3:GetObject"]
     resources = ["arn:aws:s3:::www.${var.domain_name}/*"]
 
