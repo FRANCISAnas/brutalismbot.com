@@ -11,4 +11,5 @@ ARG TF_VAR_release
 RUN sha256sum www/* | sha256sum > www.sha256sum
 RUN terraform init
 RUN terraform fmt -check
-RUN terraform plan -out terraform.tfplan
+RUN terraform plan -out terraform.zip
+CMD ["terraform", "apply", "terraform.zip"]

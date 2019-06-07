@@ -1,10 +1,13 @@
 name     := brutalismbot.com
 build    := $(shell git describe --tags --always)
-planfile := $(name)-$(build).tfplan
+planfile := .terraform/$(build).zip
 
 image   := brutalismbot/$(name)
 iidfile := .docker/$(build)
 digest   = $(shell cat $(iidfile))
+
+$(planfile): www.sha256sum | .terraform
+	docker run --rm $(digest) cat /var/task/terraform.zip > $@
 
 www.sha256sum: $(iidfile)
 	docker run --rm $(digest) cat /var/task/$@ > $@
@@ -18,25 +21,21 @@ $(iidfile): | .docker
 	--iidfile $@ \
 	--tag $(image):$(build) .
 
-.docker:
+.%:
 	mkdir -p $@
 
-.env:
-	for e in $$(cat $@.example); do env | grep $$e; done > $@
+.PHONY: shell plan apply clean
 
-.PHONY: shell apply clean
-
-shell: $(iidfile)
-	docker run --rm -it $(digest) /bin/bash
+shell: $(iidfile) .env
+	docker run --rm -it --env-file .env $(digest) /bin/bash
 
 apply: $(iidfile)
 	docker run --rm \
 	--env AWS_ACCESS_KEY_ID \
 	--env AWS_DEFAULT_REGION \
 	--env AWS_SECRET_ACCESS_KEY \
-	$(digest) \
-	terraform apply terraform.tfplan
+	$(digest)
 
 clean:
 	docker image rm -f $(image) $(shell sed G .docker/*)
-	rm -rf .docker *.tfplan www.sha256sum
+	rm -rf .docker .terraform www.sha256sum
