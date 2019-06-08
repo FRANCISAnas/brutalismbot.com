@@ -2,9 +2,12 @@
 
 Terraform for hosting [brutalismbot.com](https://www.brutalismbot.com) on AWS CloudFront and S3.
 
-## See Also
+## Development
 
-- [Brutalismbot API](https://github.com/brutalismbot/api)
-- [Brutalismbot App](https://github.com/brutalismbot/brutalismbot)
-- [Brutalismbot Gem](https://github.com/brutalismbot/gem)
+1. Ensure your AWS keys are properly exported into your environment
+2. Run `make` to build a Docker image that contains a planfile for terraform
+3. Run `make apply` to apply the configuration to AWS
+
+### See Also
+
 - [Brutalismbot Mail](https://github.com/brutalismbot/mail)
