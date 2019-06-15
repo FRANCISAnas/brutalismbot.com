@@ -181,13 +181,17 @@ resource aws_s3_bucket website {
   acl           = "private"
   bucket        = "www.${var.domain_name}"
   force_destroy = false
-  policy        = data.aws_iam_policy_document.website.json
   tags          = local.tags
 
   website {
     error_document = "error.html"
     index_document = "index.html"
   }
+}
+
+resource aws_s3_bucket_policy website {
+  bucket = aws_s3_bucket.website.id
+  policy = data.aws_iam_policy_document.website.json
 }
 
 resource null_resource sync {
