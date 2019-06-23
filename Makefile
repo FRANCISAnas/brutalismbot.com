@@ -1,8 +1,10 @@
-name  := brutalismbot.com
-build := $(shell git describe --tags --always)
-digest = $(shell cat .docker/$(build)$(1))
+name   := brutalismbot.com
+stages := build plan
+build  := $(shell git describe --tags --always)
+shells := $(foreach stage,$(stages),shell@$(stage))
+digest  = $(shell cat .docker/$(build)$(1))
 
-.PHONY: all apply clean plan shell@%
+.PHONY: all apply clean plan $(shells)
 
 all: www.sha256sum
 
@@ -33,7 +35,7 @@ clean:
 
 plan: all .docker/$(build)@plan
 
-shell@%: .docker/$(build)@% .env
+$(shells): shell@%: .docker/$(build)@%
 	docker run --rm -it --env-file .env $(call digest,@$*) /bin/bash
 
 www.sha256sum: .docker/$(build)@build
