@@ -1,21 +1,19 @@
 ARG RUNTIME=ruby2.5
+ARG TERRAFORM=latest
 
 FROM lambci/lambda:build-${RUNTIME} AS build
 COPY . .
 RUN sha256sum www/* | sha256sum > www.sha256sum
 
-FROM lambci/lambda:build-${RUNTIME} AS test
-COPY --from=hashicorp/terraform:0.12.6 /bin/terraform /bin/
+FROM hashicorp/terraform:${TERRAFORM} AS plan
+WORKDIR /var/task/
+RUN apk add --no-cache python3 && pip3 install awscli
 COPY --from=build /var/task/ .
-RUN terraform fmt -check
-
-FROM lambci/lambda:build-${RUNTIME} AS plan
-COPY --from=test /bin/terraform /bin/
-COPY --from=test /var/task/ .
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_DEFAULT_REGION=us-east-1
 ARG AWS_SECRET_ACCESS_KEY
 ARG TF_VAR_release
+RUN terraform fmt -check
 RUN terraform init
 RUN terraform plan -out terraform.zip
-CMD ["terraform", "apply", "terraform.zip"]
+CMD ["apply", "terraform.zip"]
