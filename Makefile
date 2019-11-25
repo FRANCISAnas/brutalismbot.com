@@ -4,7 +4,7 @@ terraform := latest
 build     := $(shell git describe --tags --always)
 shells    := $(foreach stage,$(stages),shell@$(stage))
 
-.PHONY: all apply clean $(stages) $(shells)
+.PHONY: all apply clean up $(stages) $(shells)
 
 all: www.sha256sum plan
 
@@ -34,6 +34,9 @@ apply: .docker/$(build)@plan
 clean:
 	-docker image rm -f $(shell awk {print} .docker/*)
 	-rm -rf .docker www.sha256sum
+
+up:
+	ruby -run -e httpd www
 
 www.sha256sum: .docker/$(build)@build
 	docker run --rm \
