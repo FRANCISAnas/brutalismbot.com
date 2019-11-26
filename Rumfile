@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+require "dotenv/load"
+
+rum :"brutalismbot/brutalismbot.com" do
+  tag %x(git describe --tags --always).strip
+
+  env :AWS_ACCESS_KEY_ID
+  env :AWS_DEFAULT_REGION
+  env :AWS_SECRET_ACCESS_KEY
+  env :TF_VAR_release => tag
+
+  stage :build
+  stage :plan => :build
+
+  artifact "www.sha256sum" => :build
+
+  default ["www.sha256sum", :plan]
+end
