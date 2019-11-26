@@ -5,16 +5,12 @@ terraform {
     region = "us-east-1"
   }
 
-  required_version = ">= 0.12.0"
-
-  required_providers {
-    aws = ">= 2.7.0"
-  }
+  required_version = "~> 0.12"
 }
 
 provider aws {
   region  = "us-east-1"
-  version = "~> 2.7"
+  version = "~> 2.11"
 }
 
 provider null {
@@ -22,11 +18,15 @@ provider null {
 }
 
 locals {
+  domain  = "brutalismbot.com"
+  repo    = "https://github.com/brutalismbot/brutalismbot.com"
+  release = var.release
+
   tags = {
     App     = "brutalismbot"
-    Name    = var.domain_name
-    Release = var.release
-    Repo    = var.repo
+    Name    = local.domain
+    Release = local.release
+    Repo    = local.repo
   }
 }
 
@@ -34,7 +34,7 @@ data aws_iam_policy_document website {
   statement {
     sid       = "AllowCloudFront"
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::www.${var.domain_name}/*"]
+    resources = ["arn:aws:s3:::www.${local.domain}/*"]
 
     principals {
       type        = "AWS"
@@ -44,7 +44,7 @@ data aws_iam_policy_document website {
 }
 
 resource aws_acm_certificate cert {
-  domain_name       = var.domain_name
+  domain_name       = local.domain
   tags              = local.tags
   validation_method = "DNS"
 
@@ -59,7 +59,7 @@ resource aws_acm_certificate_validation cert {
 }
 
 resource aws_cloudfront_distribution website {
-  aliases             = ["${var.domain_name}", "www.${var.domain_name}"]
+  aliases             = [local.domain, "www.${local.domain}"]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
@@ -113,11 +113,11 @@ resource aws_cloudfront_distribution website {
 }
 
 resource aws_cloudfront_origin_access_identity website {
-  comment = "access-identity-www.${var.domain_name}.s3.amazonaws.com"
+  comment = "access-identity-www.${local.domain}.s3.amazonaws.com"
 }
 
 resource aws_route53_record a {
-  name    = var.domain_name
+  name    = local.domain
   type    = "A"
   zone_id = aws_route53_zone.website.id
 
@@ -129,7 +129,7 @@ resource aws_route53_record a {
 }
 
 resource aws_route53_record aaaa {
-  name    = var.domain_name
+  name    = local.domain
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
 
@@ -149,7 +149,7 @@ resource aws_route53_record cert {
 }
 
 resource aws_route53_record www_a {
-  name    = "www.${var.domain_name}"
+  name    = "www.${local.domain}"
   type    = "A"
   zone_id = aws_route53_zone.website.id
 
@@ -161,7 +161,7 @@ resource aws_route53_record www_a {
 }
 
 resource aws_route53_record www_aaaa {
-  name    = "www.${var.domain_name}"
+  name    = "www.${local.domain}"
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
 
@@ -174,12 +174,12 @@ resource aws_route53_record www_aaaa {
 
 resource aws_route53_zone website {
   comment = "HostedZone created by Route53 Registrar"
-  name    = var.domain_name
+  name    = local.domain
 }
 
 resource aws_s3_bucket website {
   acl           = "private"
-  bucket        = "www.${var.domain_name}"
+  bucket        = "www.${local.domain}"
   force_destroy = false
   tags          = local.tags
 
@@ -222,18 +222,8 @@ resource null_resource invalidation {
   }
 }
 
-variable domain_name {
-  description = "Website domain name."
-  default     = "brutalismbot.com"
-}
-
 variable release {
   description = "Release tag."
-}
-
-variable repo {
-  description = "Project repository."
-  default     = "https://github.com/brutalismbot/brutalismbot.com"
 }
 
 output bucket_name {
