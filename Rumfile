@@ -14,5 +14,8 @@ rum :"brutalismbot/brutalismbot.com" do
 
   artifact "www.sha256sum" => :build
 
+  desc "Apply infrastructure"
+  run :apply => :plan
+
   default ["www.sha256sum", :plan]
 end
