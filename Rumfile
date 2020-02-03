@@ -17,5 +17,20 @@ rum :"brutalismbot/brutalismbot.com" do
   desc "Apply infrastructure"
   run :apply => :plan
 
-  default ["www.sha256sum", :plan]
+  default %w[www.sha256sum plan]
+end
+
+desc "List S3 contents"
+task :ls do
+  sh "aws s3 ls s3://www.brutalismbot.com/"
+end
+
+desc "Sync local files with S3"
+task :sync do
+  sh "aws s3 sync www s3://www.brutalismbot.com/"
+end
+
+desc "Start local HTTP server"
+task :up do
+  sh "ruby -run -e httpd www"
 end

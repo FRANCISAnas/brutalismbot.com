@@ -4,7 +4,7 @@
     <!-- Web -->
     <meta charset="utf-8">
     <meta name="author" content="small weird number">
-    <meta name="description" content="Mirror posts from /r/brutalism to Slack">
+    <meta name="description" content="Mirror posts from /r/brutalism">
     <meta name="title" content="Brutalismbot">
     <title>Brutalismbot</title>
 
@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Rich Previews -->
-    <meta property="og:description" content="Mirror posts from /r/brutalism to Slack">
+    <meta property="og:description" content="Mirror posts from /r/brutalism">
     <meta property="og:image" content="/android-chrome-192x192.png">
     <meta property="og:title" content="Brutalismbot">
     <meta property="og:url" content="https://brutalismbot.com/">
@@ -50,45 +50,70 @@
         <div class="row">
 
           <a href="#">
-            <h2>A Slack More Brutalist</h2>
+            <h2>A Web More Brutalist</h2>
           </a>
 
           <p>
-            A
-            <a href="https://slack.com/apps/AH0KW28C9-brutalismbot" target="_blank">Slack app</a>
-            that mirrors posts from
+            Brutalismbot is a mechanical marvel that mirrors posts from
             <a href="https://www.reddit.com/r/brutalism" target="_blank">/r/brutalism</a>
-            to a #channel of your choosing using
-            <a href="https://api.slack.com/incoming-webhooks" target="_blank">incoming webhooks</a>.
+            to other platforms.
           </p>
 
+          <p>
+            Every 15 minutes, fresh content from
+            <a href="https://www.reddit.com/r/brutalism/new.json">/r/brutalism/new</a>
+            is plucked and published to Brutalismbot's clients.
+          </p>
         </div>
 
-        <!-- Slack button -->
+        <!-- Twitter -->
         <div class="row">
+          <a href="#twitter">
+            <h3>Twitter</h3>
+          </a>
 
+          <!-- Follow button -->
+          <a
+            class="twitter-follow-button"
+            data-dnt="true"
+            data-show-count="false"
+            data-size="large"
+            href="https://twitter.com/brutalismbot">
+            Follow @brutalismbot
+          </a>
+          <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+          <p>
+            Follow Brutalismbot on
+            <a href="https://twitter.com/brutalismbot" target="_blank">Twitter</a>
+            to see, like, and retweet brutalism on your timeline.
+          </p>
+        </div>
+
+        <!-- Slack -->
+        <div class="row">
+          <a href="#slack">
+            <h3>Slack</h3>
+          </a>
+
+          <!-- Slack button -->
           <a href="https://slack.com/oauth/authorize?client_id=588825324710.578676076417&scope=incoming-webhook">
             <img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x">
           </a>
 
-        </div><br/>
-
-        <!-- How it works -->
-        <div class="row">
-
-          <a href="#how-it-works">
-            <h3>How it Works</h3>
-          </a>
-
-          <p>After granting Brutalismbot permission to post to a #channel on your Slack workspace, Brutalismbot will save a copy of the incoming webhook URL to which it will publish posts.</p>
           <p>
-            Every hour Brutalismbot requests posts from Reddit's REST API at
-            <a href="https://www.reddit.com/r/brutalism/new.json">/r/brutalism/new.json</a>.
+            Install Brutalismbot for
+            <a href="https://slack.com/apps/AH0KW28C9-brutalismbot" target="_blank">Slack</a>
+            to push content to a #channel of your choosing using
+            <a href="https://api.slack.com/incoming-webhooks" target="_blank">incoming webhooks</a>.
           </p>
+
+          <p>Choose a #channel on your Slack workspace and Brutalismbot will push new posts to your workspace as they are discovered.</p>
+
           <p>
-            New image posts that haven't been seen before are saved, transformed into Slack messages using
+            New posts are saved, transformed into Slack messages using
             <a href="https://api.slack.com/block-kit">Block Kit</a>,
-            and published to your #channel via the incoming webhook URL.
+            and published to your #channel using the installed incoming webhook URL.
           </p>
         </div>
 
@@ -126,7 +151,6 @@
         </div>
 
       </div>
-
     </div>
   </body>
 </html>
