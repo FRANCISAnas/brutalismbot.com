@@ -7,6 +7,7 @@ rum :"brutalismbot/brutalismbot.com" do
   env :AWS_ACCESS_KEY_ID
   env :AWS_DEFAULT_REGION
   env :AWS_SECRET_ACCESS_KEY
+  env :RUBY => "2.7"
   env :TF_VAR_release => tag
 
   stage :build
