@@ -1,11 +1,11 @@
 terraform {
+  required_version = "~> 0.12"
+
   backend s3 {
     bucket = "brutalismbot"
     key    = "terraform/brutalismbot.com.tfstate"
     region = "us-east-1"
   }
-
-  required_version = "~> 0.12"
 }
 
 provider aws {
@@ -13,32 +13,35 @@ provider aws {
   version = "~> 2.11"
 }
 
-provider null {
-  version = "~> 2.0"
-}
-
 locals {
-  domain  = "brutalismbot.com"
-  repo    = "https://github.com/brutalismbot/brutalismbot.com"
-  release = var.release
+  domain = "brutalismbot.com"
+  repo   = "https://github.com/brutalismbot/brutalismbot.com"
 
   tags = {
-    App     = "brutalismbot"
-    Name    = local.domain
-    Release = local.release
-    Repo    = local.repo
+    App  = "brutalismbot"
+    Name = local.domain
+    Repo = local.repo
   }
 }
 
 data aws_iam_policy_document website {
   statement {
-    sid       = "AllowCloudFront"
-    actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::www.${local.domain}/*"]
+    sid = "AllowCloudFront"
+
+    actions = [
+      "s3:GetObject",
+    ]
+
+    resources = [
+      "arn:aws:s3:::www.${local.domain}/*",
+    ]
 
     principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.website.iam_arn]
+      type = "AWS"
+
+      identifiers = [
+        aws_cloudfront_origin_access_identity.website.iam_arn,
+      ]
     }
   }
 }
@@ -59,11 +62,15 @@ resource aws_acm_certificate_validation cert {
 }
 
 resource aws_cloudfront_distribution website {
-  aliases             = [local.domain, "www.${local.domain}"]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
   price_class         = "PriceClass_100"
+
+  aliases = [
+    local.domain,
+    "www.${local.domain}",
+  ]
 
   custom_error_response {
     error_caching_min_ttl = 300
@@ -73,13 +80,20 @@ resource aws_cloudfront_distribution website {
   }
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
     default_ttl            = 86400
     max_ttl                = 31536000
     min_ttl                = 0
     target_origin_id       = aws_s3_bucket.website.bucket
     viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = [
+      "GET",
+      "HEAD",
+    ]
+    cached_methods = [
+      "GET",
+      "HEAD",
+    ]
 
     forwarded_values {
       query_string = false
@@ -202,30 +216,6 @@ resource aws_s3_bucket_public_access_block website {
   restrict_public_buckets = true
 }
 
-resource null_resource sync {
-  triggers = {
-    digest = file("${path.module}/www.sha256sum")
-  }
-
-  provisioner "local-exec" {
-    command = "aws s3 sync ${path.module}/www s3://${aws_s3_bucket.website.bucket}/"
-  }
-}
-
-resource null_resource invalidation {
-  triggers = {
-    sync = null_resource.sync.id
-  }
-
-  provisioner "local-exec" {
-    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.website.id} --paths '/*'"
-  }
-}
-
-variable release {
-  description = "Release tag."
-}
-
 output bucket_name {
   description = "S3 website bucket name."
   value       = aws_s3_bucket.website.bucket
@@ -234,14 +224,4 @@ output bucket_name {
 output cloudfront_distribution_id {
   description = "CloudFront distribution ID."
   value       = aws_cloudfront_distribution.website.id
-}
-
-output sync_id {
-  description = "S3 sync ID."
-  value       = null_resource.sync.id
-}
-
-output invalidation_id {
-  description = "CloudFront invalidation ID."
-  value       = null_resource.invalidation.id
 }
