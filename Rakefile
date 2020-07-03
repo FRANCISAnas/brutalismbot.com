@@ -14,7 +14,7 @@ namespace :terraform do
 
   ".terraform/terraform.zip".tap do |planfile|
 
-    file planfile, order_only: %w[.terraform] do
+    file planfile => %w[terraform.tf], order_only: %w[.terraform] do
       sh "terraform plan -out #{planfile}"
     end
 
