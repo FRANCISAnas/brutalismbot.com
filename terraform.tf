@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 0.12"
+  required_version = "~> 0.13"
 
   backend s3 {
     bucket = "brutalismbot"
@@ -10,12 +10,13 @@ terraform {
 
 provider aws {
   region  = "us-east-1"
-  version = "~> 2.11"
+  version = "~> 3.1"
 }
 
 locals {
-  domain = "brutalismbot.com"
-  repo   = "https://github.com/brutalismbot/brutalismbot.com"
+  cert_record = element(tolist(aws_acm_certificate.cert.domain_validation_options), 0)
+  domain      = "brutalismbot.com"
+  repo        = "https://github.com/brutalismbot/brutalismbot.com"
 
   tags = {
     App  = "brutalismbot"
@@ -155,10 +156,10 @@ resource aws_route53_record aaaa {
 }
 
 resource aws_route53_record cert {
-  name    = aws_acm_certificate.cert.domain_validation_options.0.resource_record_name
-  records = [aws_acm_certificate.cert.domain_validation_options.0.resource_record_value]
+  name    = local.cert_record.resource_record_name
+  records = [local.cert_record.resource_record_value]
   ttl     = 300
-  type    = aws_acm_certificate.cert.domain_validation_options.0.resource_record_type
+  type    = local.cert_record.resource_record_type
   zone_id = aws_route53_zone.website.id
 }
 
