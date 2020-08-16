@@ -233,7 +233,7 @@ resource aws_route53_record us_east_1 {
   zone_id        = aws_route53_zone.website.id
 
   alias {
-    evaluate_target_health = false # true
+    evaluate_target_health = true
     name                   = aws_apigatewayv2_domain_name.api.domain_name_configuration.0.target_domain_name
     zone_id                = aws_apigatewayv2_domain_name.api.domain_name_configuration.0.hosted_zone_id
   }
