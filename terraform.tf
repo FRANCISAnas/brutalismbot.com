@@ -8,47 +8,25 @@ terraform {
   }
 }
 
+locals {
+  cert_record = element(tolist(aws_acm_certificate.cert.domain_validation_options), 0)
+
+  tags = {
+    App  = "brutalismbot"
+    Name = "brutalismbot.com"
+    Repo = "https://github.com/brutalismbot/brutalismbot.com"
+  }
+}
+
 provider aws {
   region  = "us-east-1"
   version = "~> 3.1"
 }
 
-locals {
-  cert_record = element(tolist(aws_acm_certificate.cert.domain_validation_options), 0)
-  domain      = "brutalismbot.com"
-  repo        = "https://github.com/brutalismbot/brutalismbot.com"
-
-  tags = {
-    App  = "brutalismbot"
-    Name = local.domain
-    Repo = local.repo
-  }
-}
-
-data aws_iam_policy_document website {
-  statement {
-    sid = "AllowCloudFront"
-
-    actions = [
-      "s3:GetObject",
-    ]
-
-    resources = [
-      "arn:aws:s3:::www.${local.domain}/*",
-    ]
-
-    principals {
-      type = "AWS"
-
-      identifiers = [
-        aws_cloudfront_origin_access_identity.website.iam_arn,
-      ]
-    }
-  }
-}
+# brutalismbot.com :: SSL
 
 resource aws_acm_certificate cert {
-  domain_name       = local.domain
+  domain_name       = "brutalismbot.com"
   tags              = local.tags
   validation_method = "DNS"
 
@@ -62,16 +40,61 @@ resource aws_acm_certificate_validation cert {
   validation_record_fqdns = [aws_route53_record.cert.fqdn]
 }
 
+# brutalismbot.com :: ROUTE53
+
+resource aws_route53_zone website {
+  comment = "HostedZone created by Route53 Registrar"
+  name    = "brutalismbot.com"
+}
+
+# www.brutalismbot.com :: S3
+
+resource aws_s3_bucket website {
+  acl           = "private"
+  bucket        = "www.brutalismbot.com"
+  force_destroy = false
+  tags          = local.tags
+
+  website {
+    error_document = "error.html"
+    index_document = "index.html"
+  }
+}
+
+resource aws_s3_bucket_public_access_block website {
+  bucket                  = aws_s3_bucket.website.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+data aws_iam_policy_document website {
+  statement {
+    sid       = "AllowCloudFront"
+    actions   = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::www.brutalismbot.com/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.website.iam_arn]
+    }
+  }
+}
+
+resource aws_s3_bucket_policy website {
+  bucket = aws_s3_bucket.website.id
+  policy = data.aws_iam_policy_document.website.json
+}
+
+# www.brutalismbot.com :: CLOUDFRONT
+
 resource aws_cloudfront_distribution website {
+  aliases             = ["brutalismbot.com", "www.brutalismbot.com"]
   default_root_object = "index.html"
   enabled             = true
   is_ipv6_enabled     = true
   price_class         = "PriceClass_100"
-
-  aliases = [
-    local.domain,
-    "www.${local.domain}",
-  ]
 
   custom_error_response {
     error_caching_min_ttl = 300
@@ -128,11 +151,13 @@ resource aws_cloudfront_distribution website {
 }
 
 resource aws_cloudfront_origin_access_identity website {
-  comment = "access-identity-www.${local.domain}.s3.amazonaws.com"
+  comment = "access-identity-www.brutalismbot.com.s3.amazonaws.com"
 }
 
+# www.brutalismbot.com :: ROUTE53 RECORDS
+
 resource aws_route53_record a {
-  name    = local.domain
+  name    = "brutalismbot.com"
   type    = "A"
   zone_id = aws_route53_zone.website.id
 
@@ -144,7 +169,7 @@ resource aws_route53_record a {
 }
 
 resource aws_route53_record aaaa {
-  name    = local.domain
+  name    = "brutalismbot.com"
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
 
@@ -164,7 +189,7 @@ resource aws_route53_record cert {
 }
 
 resource aws_route53_record www_a {
-  name    = "www.${local.domain}"
+  name    = "www.brutalismbot.com"
   type    = "A"
   zone_id = aws_route53_zone.website.id
 
@@ -176,7 +201,7 @@ resource aws_route53_record www_a {
 }
 
 resource aws_route53_record www_aaaa {
-  name    = "www.${local.domain}"
+  name    = "www.brutalismbot.com"
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
 
@@ -187,35 +212,38 @@ resource aws_route53_record www_aaaa {
   }
 }
 
-resource aws_route53_zone website {
-  comment = "HostedZone created by Route53 Registrar"
-  name    = local.domain
-}
+# api.brutalismbot.com :: API GATEWAY V2
 
-resource aws_s3_bucket website {
-  acl           = "private"
-  bucket        = "www.${local.domain}"
-  force_destroy = false
-  tags          = local.tags
+resource aws_apigatewayv2_domain_name api {
+  domain_name = "api.brutalismbot.com"
+  tags        = local.tags
 
-  website {
-    error_document = "error.html"
-    index_document = "index.html"
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.cert.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
   }
 }
 
-resource aws_s3_bucket_policy website {
-  bucket = aws_s3_bucket.website.id
-  policy = data.aws_iam_policy_document.website.json
+resource aws_route53_record us_east_1 {
+  # health_check_id = aws_route53_health_check.healthcheck.id
+  name           = aws_apigatewayv2_domain_name.api.domain_name
+  set_identifier = "us-east-1.${aws_apigatewayv2_domain_name.api.domain_name}"
+  type           = "A"
+  zone_id        = aws_route53_zone.website.id
+
+  alias {
+    evaluate_target_health = false # true
+    name                   = aws_apigatewayv2_domain_name.api.domain_name_configuration.0.target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.api.domain_name_configuration.0.hosted_zone_id
+  }
+
+  latency_routing_policy {
+    region = "us-east-1"
+  }
 }
 
-resource aws_s3_bucket_public_access_block website {
-  bucket                  = aws_s3_bucket.website.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
+# OUTPUTS
 
 output bucket_name {
   description = "S3 website bucket name."
