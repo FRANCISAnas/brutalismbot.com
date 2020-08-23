@@ -28,28 +28,26 @@ namespace :terraform do
   end
 end
 
-namespace :aws do
-  namespace :s3 do
-    desc "List S3 contents"
-    task :ls do
-      sh "aws s3 ls s3://www.brutalismbot.com/"
-    end
-
-    desc "Sync local files with S3"
-    task :sync do
-      sh "aws s3 sync www s3://www.brutalismbot.com/"
-    end
+namespace :s3 do
+  desc "List S3 contents"
+  task :ls do
+    sh "aws s3 ls s3://www.brutalismbot.com/"
   end
 
-  namespace :cloudfront do
-    desc "Invalidate CloudFront cache"
-    task :invalidate => %i[terraform:init] do
-      sh <<~EOS
-        aws cloudfront create-invalidation \
-        --distribution-id $(terraform output cloudfront_distribution_id) \
-        --paths '/*'
-      EOS
-    end
+  desc "Sync local files with S3"
+  task :sync do
+    sh "aws s3 sync www s3://www.brutalismbot.com/"
+  end
+end
+
+namespace :cloudfront do
+  desc "Invalidate CloudFront cache"
+  task :invalidate => %i[terraform:init] do
+    sh <<~EOS
+      aws cloudfront create-invalidation \
+      --distribution-id $(terraform output cloudfront_distribution_id) \
+      --paths '/*'
+    EOS
   end
 end
 
