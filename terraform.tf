@@ -6,6 +6,17 @@ terraform {
     key    = "terraform/brutalismbot.com.tfstate"
     region = "us-east-1"
   }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider aws {
+  region = "us-east-1"
 }
 
 locals {
@@ -16,11 +27,6 @@ locals {
     Name = "brutalismbot.com"
     Repo = "https://github.com/brutalismbot/brutalismbot.com"
   }
-}
-
-provider aws {
-  region  = "us-east-1"
-  version = "~> 3.1"
 }
 
 # brutalismbot.com :: SSL
