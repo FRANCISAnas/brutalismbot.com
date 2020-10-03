@@ -1,5 +1,5 @@
 a {
-  color: #FFF;
+  color: #F58D8C;
 }
 
 a:hover {
@@ -23,7 +23,7 @@ h2, h3, h4 {
 }
 
 html {
-  background-color: #40374F;
+  background-color: #40364D;
 }
 
 .parallax::before {
@@ -53,7 +53,7 @@ html {
 }
 
 .main {
-  background: #40374F;
+  background: #40364D;
   font-size: 20px;
   min-height: 50vh;
   padding: 24px;
