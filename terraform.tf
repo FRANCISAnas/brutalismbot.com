@@ -1,7 +1,7 @@
 terraform {
-  required_version = "~> 0.13"
+  required_version = "~> 0.14"
 
-  backend s3 {
+  backend "s3" {
     bucket = "brutalismbot"
     key    = "terraform/brutalismbot.com.tfstate"
     region = "us-east-1"
@@ -15,7 +15,7 @@ terraform {
   }
 }
 
-provider aws {
+provider "aws" {
   region = "us-east-1"
 }
 
@@ -31,7 +31,7 @@ locals {
 
 # brutalismbot.com :: SSL
 
-resource aws_acm_certificate cert {
+resource "aws_acm_certificate" "cert" {
   domain_name       = "brutalismbot.com"
   tags              = local.tags
   validation_method = "DNS"
@@ -41,21 +41,21 @@ resource aws_acm_certificate cert {
   }
 }
 
-resource aws_acm_certificate_validation cert {
+resource "aws_acm_certificate_validation" "cert" {
   certificate_arn         = aws_acm_certificate.cert.arn
   validation_record_fqdns = [aws_route53_record.cert.fqdn]
 }
 
 # brutalismbot.com :: ROUTE53
 
-resource aws_route53_zone website {
+resource "aws_route53_zone" "website" {
   comment = "HostedZone created by Route53 Registrar"
   name    = "brutalismbot.com"
 }
 
 # www.brutalismbot.com :: S3
 
-resource aws_s3_bucket website {
+resource "aws_s3_bucket" "website" {
   acl           = "private"
   bucket        = "www.brutalismbot.com"
   force_destroy = false
@@ -67,7 +67,7 @@ resource aws_s3_bucket website {
   }
 }
 
-resource aws_s3_bucket_public_access_block website {
+resource "aws_s3_bucket_public_access_block" "website" {
   bucket                  = aws_s3_bucket.website.id
   block_public_acls       = true
   block_public_policy     = true
@@ -75,7 +75,7 @@ resource aws_s3_bucket_public_access_block website {
   restrict_public_buckets = true
 }
 
-data aws_iam_policy_document website {
+data "aws_iam_policy_document" "website" {
   statement {
     sid       = "AllowCloudFront"
     actions   = ["s3:GetObject"]
@@ -88,14 +88,14 @@ data aws_iam_policy_document website {
   }
 }
 
-resource aws_s3_bucket_policy website {
+resource "aws_s3_bucket_policy" "website" {
   bucket = aws_s3_bucket.website.id
   policy = data.aws_iam_policy_document.website.json
 }
 
 # www.brutalismbot.com :: CLOUDFRONT
 
-resource aws_cloudfront_distribution website {
+resource "aws_cloudfront_distribution" "website" {
   aliases             = ["brutalismbot.com", "www.brutalismbot.com"]
   default_root_object = "index.html"
   enabled             = true
@@ -156,13 +156,13 @@ resource aws_cloudfront_distribution website {
   }
 }
 
-resource aws_cloudfront_origin_access_identity website {
+resource "aws_cloudfront_origin_access_identity" "website" {
   comment = "access-identity-www.brutalismbot.com.s3.amazonaws.com"
 }
 
 # www.brutalismbot.com :: ROUTE53 RECORDS
 
-resource aws_route53_record a {
+resource "aws_route53_record" "a" {
   name    = "brutalismbot.com"
   type    = "A"
   zone_id = aws_route53_zone.website.id
@@ -174,7 +174,7 @@ resource aws_route53_record a {
   }
 }
 
-resource aws_route53_record aaaa {
+resource "aws_route53_record" "aaaa" {
   name    = "brutalismbot.com"
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
@@ -186,7 +186,7 @@ resource aws_route53_record aaaa {
   }
 }
 
-resource aws_route53_record cert {
+resource "aws_route53_record" "cert" {
   name    = local.cert_record.resource_record_name
   records = [local.cert_record.resource_record_value]
   ttl     = 300
@@ -194,7 +194,7 @@ resource aws_route53_record cert {
   zone_id = aws_route53_zone.website.id
 }
 
-resource aws_route53_record www_a {
+resource "aws_route53_record" "www_a" {
   name    = "www.brutalismbot.com"
   type    = "A"
   zone_id = aws_route53_zone.website.id
@@ -206,7 +206,7 @@ resource aws_route53_record www_a {
   }
 }
 
-resource aws_route53_record www_aaaa {
+resource "aws_route53_record" "www_aaaa" {
   name    = "www.brutalismbot.com"
   type    = "AAAA"
   zone_id = aws_route53_zone.website.id
@@ -220,7 +220,7 @@ resource aws_route53_record www_aaaa {
 
 # api.brutalismbot.com :: API GATEWAY V2
 
-resource aws_apigatewayv2_domain_name api {
+resource "aws_apigatewayv2_domain_name" "api" {
   domain_name = "api.brutalismbot.com"
   tags        = local.tags
 
@@ -231,7 +231,7 @@ resource aws_apigatewayv2_domain_name api {
   }
 }
 
-resource aws_route53_record us_east_1 {
+resource "aws_route53_record" "us_east_1" {
   # health_check_id = aws_route53_health_check.healthcheck.id
   name           = aws_apigatewayv2_domain_name.api.domain_name
   set_identifier = "us-east-1.${aws_apigatewayv2_domain_name.api.domain_name}"
@@ -251,12 +251,12 @@ resource aws_route53_record us_east_1 {
 
 # OUTPUTS
 
-output bucket_name {
+output "bucket_name" {
   description = "S3 website bucket name."
   value       = aws_s3_bucket.website.bucket
 }
 
-output cloudfront_distribution_id {
+output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID."
   value       = aws_cloudfront_distribution.website.id
 }
