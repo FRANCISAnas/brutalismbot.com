@@ -43,11 +43,11 @@ end
 namespace :cloudfront do
   desc "Invalidate CloudFront cache"
   task :invalidate => %i[terraform:init] do
-    sh <<~EOS
-      aws cloudfront create-invalidation \
-      --distribution-id $(terraform output cloudfront_distribution_id) \
-      --paths '/*'
-    EOS
+    sh <<~SH
+      terraform output -raw cloudfront_distribution_id \
+      | xargs aws cloudfront create-invalidation --paths '/*' --distribution-id \
+      | jq
+    SH
   end
 end
 
