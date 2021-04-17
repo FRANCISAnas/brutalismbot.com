@@ -3,28 +3,19 @@ require "rake/clean"
 CLEAN.include ".terraform"
 task :default => %i[terraform:plan]
 
-namespace :terraform do
-  desc "Run terraform apply"
-  task :apply do
-    sh %{terraform apply}
-  end
+desc "Start local HTTP server"
+task :up do
+  sh "ruby -run -e httpd www"
+end
 
-  desc "Run terraform plan"
-  task :plan => :init do
-    sh %{terraform plan}
-  end
-
-  task :init => ".terraform"
-
-  namespace :apply do
-    desc "Run terraform auto -auto-approve"
-    task :auto do
-      sh %{terraform apply -auto-approve}
-    end
-  end
-
-  directory ".terraform" do
-    sh %{terraform init}
+namespace :cloudfront do
+  desc "Invalidate CloudFront cache"
+  task :invalidate => %i[terraform:init] do
+    sh <<~SH
+      terraform output -raw cloudfront_distribution_id \
+      | xargs aws cloudfront create-invalidation --paths '/*' --distribution-id \
+      | jq
+    SH
   end
 end
 
@@ -40,18 +31,24 @@ namespace :s3 do
   end
 end
 
-namespace :cloudfront do
-  desc "Invalidate CloudFront cache"
-  task :invalidate => %i[terraform:init] do
-    sh <<~SH
-      terraform output -raw cloudfront_distribution_id \
-      | xargs aws cloudfront create-invalidation --paths '/*' --distribution-id \
-      | jq
-    SH
+namespace :terraform do
+  %i[plan apply].each do |cmd|
+    desc "Run terraform #{ cmd }"
+    task cmd => :init do
+      sh %{terraform #{ cmd }}
+    end
   end
-end
 
-desc "Start local HTTP server"
-task :up do
-  sh "ruby -run -e httpd www"
+  namespace :apply do
+    desc "Run terraform auto -auto-approve"
+    task :auto => :init do
+      sh %{terraform apply -auto-approve}
+    end
+  end
+
+  task :init => ".terraform"
+
+  directory ".terraform" do
+    sh %{terraform init}
+  end
 end
