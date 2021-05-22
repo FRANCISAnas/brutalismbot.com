@@ -10,13 +10,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 3.38"
     }
   }
 }
 
 provider "aws" {
   region = "us-east-1"
+
+  default_tags { tags = local.tags }
 }
 
 locals {
@@ -33,7 +35,6 @@ locals {
 
 resource "aws_acm_certificate" "cert" {
   domain_name       = "brutalismbot.com"
-  tags              = local.tags
   validation_method = "DNS"
 
   lifecycle {
@@ -59,7 +60,6 @@ resource "aws_s3_bucket" "website" {
   acl           = "private"
   bucket        = "www.brutalismbot.com"
   force_destroy = false
-  tags          = local.tags
 
   website {
     error_document = "error.html"
@@ -222,7 +222,6 @@ resource "aws_route53_record" "www_aaaa" {
 
 resource "aws_apigatewayv2_domain_name" "api" {
   domain_name = "api.brutalismbot.com"
-  tags        = local.tags
 
   domain_name_configuration {
     certificate_arn = aws_acm_certificate.cert.arn
@@ -253,7 +252,6 @@ resource "aws_route53_record" "us_east_1_api" {
 
 resource "aws_apigatewayv2_domain_name" "auth" {
   domain_name = "auth.brutalismbot.com"
-  tags        = local.tags
 
   domain_name_configuration {
     certificate_arn = aws_acm_certificate.cert.arn
