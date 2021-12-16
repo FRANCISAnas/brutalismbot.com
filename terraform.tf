@@ -248,36 +248,6 @@ resource "aws_route53_record" "us_east_1_api" {
   }
 }
 
-# auth.brutalismbot.com :: API GATEWAY V2
-
-resource "aws_apigatewayv2_domain_name" "auth" {
-  domain_name = "auth.brutalismbot.com"
-
-  domain_name_configuration {
-    certificate_arn = aws_acm_certificate.cert.arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
-  }
-}
-
-resource "aws_route53_record" "us_east_1_auth" {
-  # health_check_id = aws_route53_health_check.healthcheck.id
-  name           = aws_apigatewayv2_domain_name.auth.domain_name
-  set_identifier = "us-east-1.${aws_apigatewayv2_domain_name.auth.domain_name}"
-  type           = "A"
-  zone_id        = aws_route53_zone.website.id
-
-  alias {
-    evaluate_target_health = true
-    name                   = aws_apigatewayv2_domain_name.auth.domain_name_configuration.0.target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.auth.domain_name_configuration.0.hosted_zone_id
-  }
-
-  latency_routing_policy {
-    region = "us-east-1"
-  }
-}
-
 # OUTPUTS
 
 output "bucket_name" {
